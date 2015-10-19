@@ -14,7 +14,7 @@ INDEXTPL = dedent(u'''
         </head>
         <body>
             <form action="/" method="POST">
-                <textarea name="text" style="width: 100%; height: 600px;">{{ text }}</textarea>
+                <textarea name="text" style="width: 100%; height: 90%">{{ text }}</textarea>
                 <input type="submit" value="提交" />
             </form>
         </body>
@@ -33,4 +33,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", 2008)
+    import sys
+    app.run("0.0.0.0", int(sys.argv[1]))

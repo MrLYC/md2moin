@@ -36,20 +36,24 @@ def markdown_to_moin(text):
                 text_blocks.append(title)
         text = "".join(text_blocks)
 
+    sub_rex = [
+        (re.compile(r"(?<!\*)\*\*(?!\*)"), "'''"),
+        (re.compile(r"(?<!\*)\*(?!\*)"), "''"),
+        (re.compile(r"(?<!`)`(?!`)"), "'''''"),
+        (re.compile(r"(?<=\n)\s*[\-\+](?![\-\+])"), "*"),
+        (re.compile(r"\n+(\|[\s\:]*(\-)+[\s\:]*\|?)+\n+"), "\n"),
+        (re.compile(r"(?<!\|)\|(?!\|)"), "||"),
+    ]
     text_blocks = []
     for s, b in zip(
         rotate_state(["text", "code"]),
         re.split(r"(```[^\n]*.*?```)", text, flags=re.M | re.S | re.I),
     ):
         if s == "text":
-            b = re.sub(r"\n+(\|[\s\:]*(\-)+[\s\:]*\|?)+\n+", "\n", b)
-            text_blocks.append(
-                b.replace("**", "'''")
-                .replace("*", "''")
-                .replace("`", "'''''")
-                .replace("-", "*")
-                .replace("|", "||")
-            )
+            for rex, repl in sub_rex:
+                b = rex.sub(repl, b)
+            else:
+                text_blocks.append(b)
         elif s == "code":
             text_blocks.append(
                 "{{{\n%s\n}}}" % "\n".join(

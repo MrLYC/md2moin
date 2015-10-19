@@ -32,9 +32,7 @@ def markdown_to_moin(text):
             if s == "text":
                 text_blocks.append(t)
             else:
-                title = "%s %s %s\n" % (repl, t.strip("\n"), repl)
-                if t.startswith("\n"):
-                    title = "\n" + title
+                title = "\n%s %s %s\n" % (repl, t, repl)
                 text_blocks.append(title)
         text = "".join(text_blocks)
 
@@ -48,7 +46,7 @@ def markdown_to_moin(text):
             text_blocks.append(
                 b.replace("**", "'''")
                 .replace("*", "''")
-                .replace("`", "''''")
+                .replace("`", "'''''")
                 .replace("-", "*")
                 .replace("|", "||")
             )
@@ -60,7 +58,7 @@ def markdown_to_moin(text):
                 )
             )
     text = "\n".join(text_blocks)
-    return text.replace("\n", os.linesep)
+    return text.replace("\n", os.linesep).strip()
 
 
 if __name__ == "__main__":

@@ -11,31 +11,20 @@ def rotate_state(states):
     rotate_states = deque(states)
     while True:
         yield rotate_states[0]
-        rotate_states.rotate()
+        rotate_states.rotate(1)
 
 
-def markdown_to_moin(text):
-    text = "\n" + text.replace("\r\n", "\n").replace("\r", "\n")
+class Const(object):
     title_repl = [
-        ("#####", "====="),
-        ("####", "===="),
-        ("###", "==="),
-        ("##", "=="),
-        ("#", "="),
+        (re.compile(r"\n%s\s*([^\n]+?)\n" % i), repl)
+        for i, repl in [
+            ("#####", "====="),
+            ("####", "===="),
+            ("###", "==="),
+            ("##", "=="),
+            ("#", "="),
+        ]
     ]
-    for i, repl in title_repl:
-        text_blocks = []
-        for s, t in zip(
-            rotate_state(["text", "title"]),
-            re.split(r"\n%s\s*([^\n]+?)\n" % i, text)
-        ):
-            if s == "text":
-                text_blocks.append(t)
-            else:
-                title = "\n%s %s %s\n" % (repl, t, repl)
-                text_blocks.append(title)
-        text = "".join(text_blocks)
-
     sub_rex = [
         (re.compile(r"(?<!\*)\*\*(?!\*)"), "'''"),
         (re.compile(r"(?<!\*)\*(?!\*)"), "''"),
@@ -44,10 +33,30 @@ def markdown_to_moin(text):
         (re.compile(r"\n+(\|[\s\:]*(\-)+[\s\:]*\|?)+\n+"), "\n"),
         (re.compile(r"(?<!\|)\|(?!\|)"), "||"),
     ]
+    code_rex = re.compile(r"(```[^\n]*.*?```)")
+
+
+def markdown_to_moin(text):
+    text = "\n" + text.replace("\r\n", "\n").replace("\r", "\n")
+    title_repl = Const.title_repl
+    for rex, repl in title_repl:
+        text_blocks = []
+        for s, t in zip(
+            rotate_state(["text", "title"]),
+            rex.split(text)
+        ):
+            if s == "text":
+                text_blocks.append(t)
+            else:
+                title = "\n%s %s %s\n" % (repl, t, repl)
+                text_blocks.append(title)
+        text = "".join(text_blocks)
+
+    sub_rex = Const.sub_rex
     text_blocks = []
     for s, b in zip(
         rotate_state(["text", "code"]),
-        re.split(r"(```[^\n]*.*?```)", text, flags=re.M | re.S | re.I),
+        Const.code_rex.split(text, flags=re.M | re.S | re.I),
     ):
         if s == "text":
             for rex, repl in sub_rex:

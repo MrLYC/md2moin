@@ -33,7 +33,7 @@ class Const(object):
         (re.compile(r"\n+(\|[\s\:]*(\-)+[\s\:]*\|?)+\n+"), "\n"),
         (re.compile(r"(?<!\|)\|(?!\|)"), "||"),
     ]
-    code_rex = re.compile(r"(```[^\n]*.*?```)")
+    code_rex = re.compile(r"(```[^\n]*.*?```)", flags=re.M | re.S | re.I)
 
 
 def markdown_to_moin(text):
@@ -56,7 +56,7 @@ def markdown_to_moin(text):
     text_blocks = []
     for s, b in zip(
         rotate_state(["text", "code"]),
-        Const.code_rex.split(text, flags=re.M | re.S | re.I),
+        Const.code_rex.split(text),
     ):
         if s == "text":
             for rex, repl in sub_rex:

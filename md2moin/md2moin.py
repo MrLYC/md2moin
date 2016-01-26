@@ -30,11 +30,28 @@ class Const(object):
         (re.compile(r"(?<!\*)\*(?!\*)"), "''"),
         (re.compile(r"(?<!\+)\+\+(?!\+)"), "__"),
         (re.compile(r"(?<!`)`(?!`)"), "'''''"),
-        (re.compile(r"(?<=\n)\s*[\-\+](?![\-\+])"), "*"),
+        (re.compile(r"(?<=\n)\s*[\-\+](?![\-\+])"), "\n*"),
+        (re.compile(r"\n(?=\d)"), "\n\n"),
         (re.compile(r"\n+(\|[\s\:]*(\-)+[\s\:]*\|?)+\n+"), "\n"),
         (re.compile(r"(?<!\|)\|(?!\|)"), "||"),
     ]
+    lnk_rex = re.compile(r"\[(.*?)\]\((.+?)\)")
     code_rex = re.compile(r"(```[^\n]*.*?```)", flags=re.M | re.S | re.I)
+
+
+def convert_link(text):
+    parts = []
+    link_text = None
+    t = 0
+    for i in Const.lnk_rex.split(text):
+        if t == 0:
+            parts.append(i)
+        elif t == 1:
+            link_text = i
+        elif t == 2:
+            parts.append("[[%s|%s]]" % (i, link_text))
+        t = (t + 1) % 3
+    return "".join(parts)
 
 
 def markdown_to_moin(text):
@@ -63,7 +80,7 @@ def markdown_to_moin(text):
             for rex, repl in sub_rex:
                 b = rex.sub(repl, b)
             else:
-                text_blocks.append(b)
+                text_blocks.append(convert_link(b))
         elif s == "code":
             text_blocks.append(
                 "{{{\n%s\n}}}" % "\n".join(

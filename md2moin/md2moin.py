@@ -83,10 +83,7 @@ def markdown_to_moin(text):
                 text_blocks.append(convert_link(b))
         elif s == "code":
             text_blocks.append(
-                "{{{\n%s\n}}}" % "\n".join(
-                    i
-                    for i in b.split("\n")[1:-1]
-                )
+                "{{{#!highlight %s}}}" % b.strip("`")
             )
     text = "\n".join(text_blocks)
     return text.replace("\n", os.linesep).strip()
